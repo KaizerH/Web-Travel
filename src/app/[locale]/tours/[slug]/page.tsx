@@ -6,7 +6,14 @@ import { Tour } from "@/models/Tour";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, Clock, Facebook, ArrowLeft, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, Clock, Facebook, ArrowLeft, CheckCircle, XCircle, Users, AlertCircle } from "lucide-react";
+import TourGallery from "@/components/TourGallery";
+
+function isExpired(closeDate?: string): boolean {
+  if (!closeDate) return false;
+  const [d, m, y] = closeDate.split("/").map(Number);
+  return new Date(y, m - 1, d) < new Date();
+}
 
 export default async function TourDetailPage({
   params,
@@ -29,12 +36,22 @@ export default async function TourDetailPage({
 
   const title = (tour.title as Record<string, string>)[locale] || (tour.title as Record<string, string>)["vi"];
   const description = tour.description ? (tour.description as Record<string, string>)[locale] || (tour.description as Record<string, string>)["vi"] : "";
-  const departures = tour.departures as { date: string; status: string }[];
+  const departures = (tour.departures as Record<string, unknown>[]) || [];
+  const gallery = (tour.images as string[]) || [];
 
   const statusClass: Record<string, string> = {
     open: "tag-open",
     private: "tag-private",
     full: "tag-full",
+  };
+
+  const effectiveLabel = (dep: Record<string, unknown>): { label: string; cls: string } => {
+    if (dep.status === "full") return { label: t("status.full"), cls: "tag-full" };
+    if (isExpired(dep.registrationCloseDate as string)) return { label: "Đã đóng ĐKý", cls: "tag-full" };
+    if (dep.maxPeople && dep.currentBookings && (dep.currentBookings as number) >= (dep.maxPeople as number))
+      return { label: t("status.full"), cls: "tag-full" };
+    if (dep.status === "private") return { label: t("status.private"), cls: "tag-private" };
+    return { label: t("status.open"), cls: "tag-open" };
   };
 
   return (
@@ -72,6 +89,14 @@ export default async function TourDetailPage({
               </div>
             )}
 
+            {/* Gallery */}
+            {gallery.length > 0 && (
+              <div>
+                <h2 className="font-display text-xl font-bold text-brand-brown mb-4">Bộ ảnh tour</h2>
+                <TourGallery images={gallery} title={title} />
+              </div>
+            )}
+
             {/* Includes / Excludes */}
             {(tour.includes as string[])?.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -103,15 +128,45 @@ export default async function TourDetailPage({
           <div className="space-y-4">
             <div className="bg-white rounded-2xl p-6 shadow-md border border-brand-cream-dark sticky top-24">
               <h3 className="font-display font-bold text-brand-brown text-lg mb-4">{t("departures")}</h3>
-              <div className="space-y-2 mb-6">
-                {departures.map((dep, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <span className="text-sm text-brand-brown">{dep.date}</span>
-                    <span className={statusClass[dep.status] || "tag-open"}>
-                      {dep.status === "open" ? t("status.open") : dep.status === "private" ? t("status.private") : t("status.full")}
-                    </span>
-                  </div>
-                ))}
+              <div className="space-y-3 mb-6">
+                {departures.map((dep, i) => {
+                  const { label, cls } = effectiveLabel(dep);
+                  const max = dep.maxPeople as number | undefined;
+                  const booked = dep.currentBookings as number | undefined;
+                  const slotsLeft = max && booked !== undefined ? max - booked : null;
+                  return (
+                    <div key={i} className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-brand-brown font-medium">{dep.date as string}</span>
+                        <span className={cls}>{label}</span>
+                      </div>
+                      {max !== undefined && booked !== undefined && (
+                        <div>
+                          <div className="flex items-center justify-between text-xs text-brand-brown-light mb-1">
+                            <span className="flex items-center gap-1"><Users size={10} /> {booked}/{max} người</span>
+                            {slotsLeft !== null && slotsLeft <= 5 && slotsLeft > 0 && (
+                              <span className="text-brand-rust font-semibold flex items-center gap-1">
+                                <AlertCircle size={10} /> Còn {slotsLeft} chỗ
+                              </span>
+                            )}
+                          </div>
+                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${
+                                booked / max >= 0.9 ? "bg-brand-rust" :
+                                booked / max >= 0.6 ? "bg-amber-400" : "bg-brand-teal"
+                              }`}
+                              style={{ width: `${Math.min(100, (booked / max) * 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      {dep.registrationCloseDate && !isExpired(dep.registrationCloseDate as string) && (
+                        <p className="text-xs text-brand-brown-light">Đóng ĐKý: {dep.registrationCloseDate as string}</p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               <a
                 href="https://www.facebook.com/profile.php?id=61582714852699"

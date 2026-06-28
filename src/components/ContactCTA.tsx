@@ -9,14 +9,12 @@ export default function ContactCTA() {
   const locale = useLocale();
 
   return (
-    <section className="py-20 bg-gradient-to-br from-brand-teal to-brand-teal-dark relative overflow-hidden">
-      {/* Pattern */}
+    <section className="py-20 relative overflow-hidden">
       <div
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'%3E%3Ccircle cx='20' cy='20' r='3'/%3E%3C/g%3E%3C/svg%3E")`,
-        }}
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=1600&q=80')" }}
       />
+      <div className="absolute inset-0 bg-brand-teal/75" />
 
       <div className="relative z-10 max-w-4xl mx-auto text-center px-4">
         <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{t("title")}</h2>

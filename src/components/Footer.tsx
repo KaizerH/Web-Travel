@@ -3,7 +3,7 @@
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
-import { Facebook, MessageCircle } from "lucide-react";
+import { Facebook } from "lucide-react";
 
 export default function Footer() {
   const t = useTranslations("footer");
@@ -35,10 +35,7 @@ export default function Footer() {
                 { href: `/${locale}/contact`, label: nav("contact") },
               ].map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-white/70 hover:text-white text-sm transition-colors"
-                  >
+                  <Link href={link.href} className="text-white/70 hover:text-white text-sm transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -49,23 +46,31 @@ export default function Footer() {
           {/* Social */}
           <div>
             <h4 className="font-semibold text-white mb-4">{t("followUs")}</h4>
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3">
+              {/* Facebook */}
               <a
                 href="https://www.facebook.com/profile.php?id=61582714852699"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2.5 rounded-full transition-colors cursor-pointer"
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2.5 rounded-full transition-colors w-fit"
               >
                 <Facebook size={16} />
                 Facebook
               </a>
-              <Link
-                href={`/${locale}/contact`}
-                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2.5 rounded-full transition-colors cursor-pointer"
+
+              {/* Xiaohongshu (小红书) */}
+              <a
+                href="https://www.xiaohongshu.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2.5 rounded-full transition-colors w-fit"
               >
-                <MessageCircle size={16} />
-                WeChat
-              </Link>
+                {/* XHS logo icon */}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.5 7.5h-2v5h-1v-5h-2V8h5v1.5zm-8 5h-1V8h1v3.5h1.5v1H8.5z"/>
+                </svg>
+                小红书 Xiaohongshu
+              </a>
             </div>
           </div>
         </div>

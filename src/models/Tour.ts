@@ -19,21 +19,20 @@ const TourSchema = new Schema(
       {
         date: String,
         status: { type: String, enum: ["open", "private", "full"], default: "open" },
+        maxPeople: { type: Number, default: 15 },
+        currentBookings: { type: Number, default: 0 },
+        registrationCloseDate: String, // "DD/MM/YYYY"
       },
     ],
     price: Number,
     currency: { type: String, default: "VND" },
-    images: [String],
     coverImage: String,
+    images: [String], // gallery
     itinerary: [
       {
         day: Number,
-        titleVi: String,
-        titleEn: String,
-        titleZh: String,
-        descVi: String,
-        descEn: String,
-        descZh: String,
+        titleVi: String, titleEn: String, titleZh: String,
+        descVi: String, descEn: String, descZh: String,
       },
     ],
     highlights: [String],
