@@ -7,7 +7,7 @@ import { Plus, Pencil, Trash2, Eye, EyeOff, Star } from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
 
-interface Tour {
+interface Tour extends Record<string, unknown> {
   _id: string;
   slug: string;
   title: { vi: string; en: string; zh: string };
@@ -23,7 +23,7 @@ export default function AdminToursPage() {
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editTour, setEditTour] = useState<Tour | null>(null);
+  const [editTour, setEditTour] = useState<Record<string, unknown> | null>(null);
 
   const load = async () => {
     const res = await fetch("/api/tours?all=1");
