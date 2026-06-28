@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hướng Dẫn Vận Hành – Linh Đình Travel Admin</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal: #2D6A6A;
+    --rust: #B05C35;
+    --brown: #3D2B1F;
+    --brown-light: #7a5c4e;
+    --cream: #F5EFE6;
+    --cream-dark: #e8ddd0;
+    --green: #16a34a;
+    --blue: #2563eb;
+    --amber: #d97706;
+    --red: #dc2626;
+  }
+
+  body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: var(--brown); }
+
+  /* SIDEBAR */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 260px; background: var(--brown); color: white;
+    position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto;
+    padding: 24px 0; z-index: 100;
+  }
+  .sidebar-brand { padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px; }
+  .sidebar-brand h1 { font-family: 'Playfair Display', serif; font-size: 18px; color: white; line-height: 1.3; }
+  .sidebar-brand p { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+  .sidebar-section { padding: 8px 20px 4px; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+  .sidebar a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; color: rgba(255,255,255,0.75);
+    text-decoration: none; font-size: 14px; transition: all .2s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar a:hover { color: white; background: rgba(255,255,255,0.07); border-left-color: var(--rust); }
+  .sidebar a.active { color: white; background: rgba(255,255,255,0.1); border-left-color: #7ec9c9; }
+  .sidebar-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  /* MAIN */
+  .main { margin-left: 260px; padding: 32px 40px; max-width: 960px; }
+
+  /* HEADER */
+  .page-header { margin-bottom: 36px; }
+  .page-header h2 { font-family: 'Playfair Display', serif; font-size: 30px; color: var(--brown); margin-bottom: 6px; }
+  .page-header p { color: var(--brown-light); font-size: 15px; }
+
+  /* SECTION */
+  .doc-section { margin-bottom: 48px; scroll-margin-top: 32px; }
+  .doc-section h3 {
+    font-family: 'Playfair Display', serif; font-size: 22px; color: var(--brown);
+    margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--cream-dark);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .doc-section h4 { font-size: 15px; font-weight: 700; color: var(--brown); margin: 20px 0 10px; }
+
+  /* CARD */
+  .card { background: white; border-radius: 14px; padding: 24px; margin-bottom: 16px; border: 1px solid var(--cream-dark); }
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* STEPS */
+  .steps { counter-reset: step; }
+  .step {
+    display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start;
+  }
+  .step-num {
+    counter-increment: step;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--teal); color: white; font-weight: 700; font-size: 14px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .step-body { flex: 1; padding-top: 4px; }
+  .step-body strong { display: block; font-size: 14px; color: var(--brown); margin-bottom: 4px; }
+  .step-body p, .step-body span { font-size: 13px; color: var(--brown-light); line-height: 1.6; }
+
+  /* BADGE */
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .badge-green { background: #dcfce7; color: var(--green); }
+  .badge-amber { background: #fef3c7; color: var(--amber); }
+  .badge-red { background: #fee2e2; color: var(--red); }
+  .badge-blue { background: #dbeafe; color: var(--blue); }
+  .badge-teal { background: rgba(45,106,106,0.1); color: var(--teal); }
+
+  /* CODE */
+  code { background: var(--cream); color: var(--rust); padding: 2px 7px; border-radius: 5px; font-size: 12px; font-family: monospace; }
+
+  /* ALERT */
+  .alert { border-radius: 10px; padding: 14px 18px; font-size: 13px; margin-bottom: 14px; display: flex; gap: 10px; align-items: flex-start; }
+  .alert-info { background: #dbeafe; color: #1e40af; }
+  .alert-warn { background: #fef3c7; color: #92400e; }
+  .alert-success { background: #dcfce7; color: #166534; }
+  .alert-danger { background: #fee2e2; color: #991b1b; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--cream); color: var(--brown); font-weight: 600; padding: 10px 14px; text-align: left; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--cream-dark); color: var(--brown-light); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td strong { color: var(--brown); }
+
+  /* URL BOX */
+  .url-box {
+    background: var(--brown); color: #7ec9c9; font-family: monospace; font-size: 14px;
+    padding: 14px 20px; border-radius: 10px; margin: 12px 0; letter-spacing: .5px;
+    word-break: break-all;
+  }
+
+  /* CHECKLIST */
+  .checklist { list-style: none; }
+  .checklist li { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; font-size: 13px; color: var(--brown-light); border-bottom: 1px solid var(--cream-dark); }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li::before { content: '☐'; color: var(--teal); font-size: 16px; flex-shrink: 0; margin-top: -1px; }
+
+  /* FAQ */
+  .faq-item { border: 1px solid var(--cream-dark); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+  .faq-q { padding: 14px 18px; font-weight: 600; font-size: 14px; color: var(--brown); background: white; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .faq-a { padding: 14px 18px; font-size: 13px; color: var(--brown-light); background: var(--cream); line-height: 1.7; display: none; }
+  .faq-item.open .faq-a { display: block; }
+  .faq-item.open .faq-icon { transform: rotate(180deg); }
+  .faq-icon { transition: transform .2s; }
+
+  /* FLOW */
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .flow-box { background: var(--cream); color: var(--brown); font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--cream-dark); }
+  .flow-arrow { color: var(--brown-light); font-size: 16px; }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 24px 16px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <h1>Linh Đình Travel</h1>
+    <p>Hướng dẫn vận hành Admin</p>
+  </div>
+
+  <div class="sidebar-section">Bắt đầu</div>
+  <a href="#truy-cap" class="active"><span class="sidebar-icon">🔐</span> Truy cập Admin</a>
+  <a href="#tong-quan"><span class="sidebar-icon">📊</span> Tổng quan Dashboard</a>
+
+  <div class="sidebar-section">Quản lý nội dung</div>
+  <a href="#quan-ly-tour"><span class="sidebar-icon">✈️</span> Quản lý Tour</a>
+  <a href="#quan-ly-blog"><span class="sidebar-icon">📝</span> Quản lý Blog</a>
+  <a href="#quan-ly-danh-gia"><span class="sidebar-icon">⭐</span> Quản lý Đánh giá</a>
+  <a href="#quan-ly-booking"><span class="sidebar-icon">📋</span> Quản lý Booking</a>
+
+  <div class="sidebar-section">Hình ảnh</div>
+  <a href="#upload-anh"><span class="sidebar-icon">🖼</span> Upload Ảnh</a>
+  <a href="#wechat-qr"><span class="sidebar-icon">💬</span> Cập nhật WeChat QR</a>
+
+  <div class="sidebar-section">Hỗ trợ</div>
+  <a href="#loi-thuong-gap"><span class="sidebar-icon">🛠</span> Lỗi thường gặp</a>
+  <a href="#lien-he-ky-thuat"><span class="sidebar-icon">📞</span> Liên hệ kỹ thuật</a>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <div class="page-header">
+    <h2>📚 Hướng Dẫn Vận Hành Website</h2>
+    <p>Tài liệu dành cho Admin – Linh Đình Travel · Cập nhật: 06/2026</p>
+  </div>
+
+  <!-- ── TRUY CẬP ADMIN ── -->
+  <section class="doc-section" id="truy-cap">
+    <h3><span>🔐</span> Truy cập trang Admin</h3>
+
+    <div class="alert alert-info">
+      💡 Trang Admin chỉ dành cho người được cấp quyền. Không chia sẻ thông tin đăng nhập cho người khác.
+    </div>
+
+    <div class="card">
+      <h4>Địa chỉ đăng nhập</h4>
+      <div class="url-box">https://your-domain.com/admin</div>
+      <p style="font-size:13px;color:var(--brown-light);margin-top:8px;">Khi chưa có domain, dùng địa chỉ server: <code>http://IP-SERVER/admin</code></p>
+    </div>
+
+    <div class="card">
+      <h4>Các bước đăng nhập</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Mở trình duyệt</strong><p>Chrome hoặc Safari, truy cập đường dẫn admin ở trên.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Nhập Email & Mật khẩu</strong><p>Dùng tài khoản được cấp. Mật khẩu mặc định ban đầu sẽ được gửi riêng.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Nhấn "Đăng nhập"</strong><p>Nếu đúng, bạn sẽ vào trang Dashboard chính.</p></div></div>
+      </div>
+    </div>
+
+    <div class="alert alert-warn">
+      ⚠️ Nếu quên mật khẩu, liên hệ kỹ thuật để reset — không tự đổi file cấu hình trên server.
+    </div>
+  </section>
+
+  <!-- ── DASHBOARD ── -->
+  <section class="doc-section" id="tong-quan">
+    <h3><span>📊</span> Tổng quan Dashboard</h3>
+    <div class="card">
+      <p style="font-size:13px;color:var(--brown-light);margin-bottom:16px;">Sau khi đăng nhập, bạn thấy màn hình Dashboard với các số liệu tổng hợp:</p>
+      <div class="card-grid">
+        <div>
+          <div style="font-size:24px;font-weight:700;color:var(--teal);">Tours</div>
+          <p style="font-size:13px;color:var(--brown-light);">Tổng số tour đang hoạt động trên website.</p>
+        </div>
+        <div>
+          <div style="font-size:24px;font-weight:700;color:var(--rust);">Bookings</div>
+          <p style="font-size:13px;color:var(--brown-light);">Số lượng yêu cầu đặt tour từ khách hàng.</p>
+        </div>
+        <div>
+          <div style="font-size:24px;font-weight:700;color:var(--amber);">Blog</div>
+          <p style="font-size:13px;color:var(--brown-light);">Số bài viết đã đăng trên trang Blog.</p>
+        </div>
+        <div>
+          <div style="font-size:24px;font-weight:700;color:var(--green);">Reviews</div>
+          <p style="font-size:13px;color:var(--brown-light);">Số đánh giá của khách hàng đang hiển thị.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h4>Menu điều hướng Admin</h4>
+      <table>
+        <tr><th>Mục</th><th>Chức năng</th></tr>
+        <tr><td><strong>🏠 Dashboard</strong></td><td>Trang tổng quan, số liệu nhanh</td></tr>
+        <tr><td><strong>✈️ Tours</strong></td><td>Thêm, sửa, xoá tour du lịch</td></tr>
+        <tr><td><strong>📝 Blog</strong></td><td>Quản lý bài viết blog</td></tr>
+        <tr><td><strong>⭐ Reviews</strong></td><td>Duyệt và hiển thị đánh giá khách</td></tr>
+        <tr><td><strong>📋 Bookings</strong></td><td>Xem danh sách yêu cầu đặt tour</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── TOUR ── -->
+  <section class="doc-section" id="quan-ly-tour">
+    <h3><span>✈️</span> Quản lý Tour</h3>
+
+    <div class="alert alert-success">
+      ✅ Đây là phần quan trọng nhất — mọi thay đổi tour sẽ hiển thị ngay trên website sau khi lưu.
+    </div>
+
+    <div class="card">
+      <h4>Thêm Tour mới</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Vào Admin → Tours → Nhấn "Thêm Tour"</strong><p>Cửa sổ soạn tour xuất hiện với 4 tab.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Tab 📝 Nội dung</strong><p>Điền: Ảnh bìa, Tên tour (3 ngôn ngữ: Việt/Anh/Trung), Điểm đến, Số ngày, Mô tả, Danh mục.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Tab 🖼 Ảnh</strong><p>Upload nhiều ảnh cho gallery của tour. Có thể chọn nhiều file cùng lúc.</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Tab ✅ Chi tiết</strong><p>Nhập Điểm nổi bật, Bao gồm trong giá, Không bao gồm — mỗi dòng một mục.</p></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-body"><strong>Tab 📅 Lịch KH</strong><p>Thêm các đợt khởi hành: ngày, trạng thái, tổng chỗ, đã đặt, ngày đóng đăng ký.</p></div></div>
+        <div class="step"><div class="step-num">6</div><div class="step-body"><strong>Nhấn "Tạo Tour"</strong><p>Tour hiển thị ngay trên website.</p></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>Quản lý lịch khởi hành & số chỗ</h4>
+      <table>
+        <tr><th>Trường</th><th>Ý nghĩa</th><th>Ví dụ</th></tr>
+        <tr><td><strong>Ngày KH</strong></td><td>Ngày khởi hành – kết thúc</td><td>29/10–03/11/2026</td></tr>
+        <tr><td><strong>Trạng thái</strong></td><td>Tình trạng đợt đó</td><td>✅ Đã mở / 🔒 Đoàn riêng / ❌ Hết chỗ</td></tr>
+        <tr><td><strong>Tổng chỗ (max)</strong></td><td>Sức chứa tối đa của đoàn</td><td>15</td></tr>
+        <tr><td><strong>Đã đặt</strong></td><td>Số người đã đăng ký (cập nhật thủ công)</td><td>10</td></tr>
+        <tr><td><strong>Đóng ĐKý</strong></td><td>Ngày cuối nhận đăng ký. Sau ngày này tự động hiện "Đã đóng"</td><td>15/10/2026</td></tr>
+      </table>
+      <div class="alert alert-info" style="margin-top:14px;">
+        💡 Khi "Đã đặt" ≥ "Tổng chỗ", website tự động hiện <span class="badge badge-red">Hết chỗ</span>. Khi quá "Ngày đóng ĐKý", tự hiện <span class="badge badge-red">Đã đóng ĐKý</span>.
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>Trạng thái hiển thị trên website</h4>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <span class="badge badge-teal">✅ Đã mở ĐKý</span>
+        <span class="badge badge-amber">🔒 Đoàn riêng</span>
+        <span class="badge badge-red">❌ Hết chỗ</span>
+        <span class="badge badge-red">Đã đóng ĐKý</span>
+      </div>
+      <p style="font-size:12px;color:var(--brown-light);margin-top:10px;">Thanh màu sắc capacity: xanh (dưới 60%) → vàng (60–90%) → đỏ (trên 90%)</p>
+    </div>
+
+    <div class="card">
+      <h4>Sửa / Xoá Tour</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Tìm tour cần sửa</strong><p>Vào Admin → Tours, danh sách hiện tất cả tour.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Nhấn ✏️ để sửa</strong><p>Cửa sổ mở ra với dữ liệu hiện tại, chỉnh sửa rồi nhấn "Cập nhật".</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Nhấn 🗑 để xoá</strong><p>Có hộp xác nhận trước khi xoá — xoá xong không khôi phục được.</p></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>Ẩn tour tạm thời (không xoá)</h4>
+      <p style="font-size:13px;color:var(--brown-light);">Khi sửa tour, bỏ tick ô <strong>👁 Hiển thị</strong> → tour không hiện trên website nhưng vẫn lưu trong hệ thống. Khi muốn hiện lại, tick vào rồi Cập nhật.</p>
+    </div>
+  </section>
+
+  <!-- ── BLOG ── -->
+  <section class="doc-section" id="quan-ly-blog">
+    <h3><span>📝</span> Quản lý Blog</h3>
+    <div class="card">
+      <h4>Đăng bài viết mới</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Admin → Blog → "Thêm bài"</strong><p>Cửa sổ soạn bài xuất hiện.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Điền thông tin</strong><p>Tiêu đề (3 ngôn ngữ), ảnh bìa, nội dung, danh mục, slug URL.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Tick "Đã xuất bản" → Lưu</strong><p>Bài hiện ngay trên trang Blog.</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h4>Lưu ý khi viết bài</h4>
+      <table>
+        <tr><th>Trường</th><th>Ghi chú</th></tr>
+        <tr><td><strong>Slug</strong></td><td>URL bài viết, tự động tạo từ tiêu đề. Không dùng ký tự đặc biệt, tiếng Việt có dấu.</td></tr>
+        <tr><td><strong>Ảnh bìa</strong></td><td>Nên dùng ảnh tỷ lệ 16:9, kích thước tối thiểu 800×450px.</td></tr>
+        <tr><td><strong>Nội dung</strong></td><td>Viết tiếng Việt là đủ — phiên bản Anh/Trung có thể bổ sung sau.</td></tr>
+        <tr><td><strong>Danh mục</strong></td><td>Chọn danh mục phù hợp để khách dễ lọc bài.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── REVIEWS ── -->
+  <section class="doc-section" id="quan-ly-danh-gia">
+    <h3><span>⭐</span> Quản lý Đánh giá</h3>
+    <div class="card">
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Admin → Reviews</strong><p>Xem danh sách tất cả đánh giá đã nhập.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Thêm đánh giá mới</strong><p>Nhập tên khách, số sao, nội dung đánh giá, tour tham gia.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Tick "Hiển thị" để đăng</strong><p>Đánh giá xuất hiện trên trang chủ và trang Reviews.</p></div></div>
+      </div>
+      <div class="alert alert-info" style="margin-top:12px;">
+        💡 Nên xin phép khách trước khi đăng đánh giá của họ lên website.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BOOKING ── -->
+  <section class="doc-section" id="quan-ly-booking">
+    <h3><span>📋</span> Quản lý Booking</h3>
+    <div class="card">
+      <p style="font-size:13px;color:var(--brown-light);margin-bottom:16px;">Khi khách điền form liên hệ trên website, yêu cầu sẽ vào đây. Trang Admin → Bookings hiển thị danh sách:</p>
+      <table>
+        <tr><th>Cột</th><th>Thông tin</th></tr>
+        <tr><td><strong>Khách hàng</strong></td><td>Họ tên người liên hệ</td></tr>
+        <tr><td><strong>Liên hệ</strong></td><td>Email và số điện thoại</td></tr>
+        <tr><td><strong>Tour quan tâm</strong></td><td>Tour khách muốn đặt</td></tr>
+        <tr><td><strong>Ngày gửi</strong></td><td>Thời gian nhận yêu cầu</td></tr>
+        <tr><td><strong>Trạng thái</strong></td><td><span class="badge badge-amber">Chờ xử lý</span> → <span class="badge badge-green">Đã xác nhận</span> → <span class="badge badge-red">Đã hủy</span></td></tr>
+      </table>
+    </div>
+    <div class="alert alert-warn">
+      ⚠️ Booking chủ yếu đến qua Facebook Messenger và WeChat — luôn kiểm tra cả 2 kênh đó hàng ngày.
+    </div>
+  </section>
+
+  <!-- ── UPLOAD ẢNH ── -->
+  <section class="doc-section" id="upload-anh">
+    <h3><span>🖼</span> Upload Ảnh</h3>
+    <div class="card">
+      <h4>Upload ảnh bìa tour</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Khi thêm/sửa tour, vào Tab 📝 Nội dung</strong><p>Khu vực "Ảnh bìa tour" hiện ở đầu trang.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Kéo thả ảnh vào ô upload hoặc nhấn chọn file</strong><p>Hỗ trợ định dạng JPG, PNG, WEBP. Nên dùng ảnh ngang (landscape).</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Hoặc dán link ảnh</strong><p>Có ô nhập URL ảnh phía dưới nếu ảnh đã có trên internet.</p></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h4>Upload gallery nhiều ảnh</h4>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Vào Tab 🖼 Ảnh</strong><p>Trong cửa sổ sửa tour.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Nhấn "Chọn ảnh (có thể chọn nhiều)"</strong><p>Giữ Cmd (Mac) hoặc Ctrl (Windows) để chọn nhiều file cùng lúc.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Ảnh tải xong hiện dạng lưới</strong><p>Hover vào ảnh và nhấn ✕ để xóa từng ảnh.</p></div></div>
+      </div>
+      <div class="alert alert-info" style="margin-top:12px;">
+        💡 Ảnh tốt nhất: 1200×800px, dung lượng dưới 2MB mỗi ảnh để tải nhanh.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── WECHAT QR ── -->
+  <section class="doc-section" id="wechat-qr">
+    <h3><span>💬</span> Cập nhật WeChat QR</h3>
+    <div class="card">
+      <p style="font-size:13px;color:var(--brown-light);margin-bottom:16px;">Ảnh QR WeChat hiển thị trên trang Liên Hệ. Khi cần thay QR mới (đổi tài khoản WeChat):</p>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Chụp màn hình QR WeChat mới</strong><p>Lưu file ảnh với tên <code>wechat-qr.png</code></p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Copy file vào thư mục</strong><p>Đường dẫn trên server: <code>/public/images/wechat-qr.png</code><br/>Thay thế file cũ bằng file mới, giữ nguyên tên file.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Kiểm tra trang Liên Hệ</strong><p>Mở website → Liên Hệ → QR mới hiển thị ngay.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── LỖI THƯỜNG GẶP ── -->
+  <section class="doc-section" id="loi-thuong-gap">
+    <h3><span>🛠</span> Lỗi thường gặp & Cách xử lý</h3>
+
+    <div class="faq-item open">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        Đăng nhập không được, báo sai mật khẩu
+        <span class="faq-icon">▼</span>
+      </div>
+      <div class="faq-a">
+        Kiểm tra lại email và mật khẩu (phân biệt chữ hoa/thường). Nếu vẫn không được, liên hệ kỹ thuật để reset. Không tự sửa file <code>.env</code> trên server.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        Ảnh upload xong nhưng không hiển thị
+        <span class="faq-icon">▼</span>
+      </div>
+      <div class="faq-a">
+        1. Kiểm tra dung lượng ảnh — giới hạn 5MB/file. <br/>
+        2. Thử refresh lại trang (Ctrl+Shift+R hoặc Cmd+Shift+R). <br/>
+        3. Nếu vẫn không hiện, liên hệ kỹ thuật kiểm tra thư mục <code>/public/uploads/</code> trên server.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        Tạo tour rồi nhưng không thấy trên website
+        <span class="faq-icon">▼</span>
+      </div>
+      <div class="faq-a">
+        Kiểm tra tour có được tick <strong>👁 Hiển thị</strong> không. Nếu ô đó bỏ trống, tour sẽ ẩn. Vào sửa tour → tick lại → Cập nhật.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        Website hiện "Đã đóng ĐKý" nhưng tour vẫn còn chỗ
+        <span class="faq-icon">▼</span>
+      </div>
+      <div class="faq-a">
+        Kiểm tra trường <strong>Đóng ĐKý (DD/MM/YYYY)</strong> trong Tab Lịch KH của tour. Nếu ngày đó đã qua, hệ thống tự động đóng. Sửa lại ngày hoặc xóa trường đó để mở lại.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        Website không mở được (lỗi 502 hoặc trắng trang)
+        <span class="faq-icon">▼</span>
+      </div>
+      <div class="faq-a">
+        Đây là lỗi server, không phải lỗi admin. Liên hệ ngay với kỹ thuật. Cần cung cấp: thời điểm phát hiện lỗi và thông báo lỗi hiển thị (chụp màn hình).
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        Muốn thay đổi số điện thoại / Facebook / Xiaohongshu
+        <span class="faq-icon">▼</span>
+      </div>
+      <div class="faq-a">
+        Các thông tin liên hệ được nhúng trong code website. Để thay đổi, liên hệ kỹ thuật và cung cấp thông tin mới — thường sửa xong trong 30 phút.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CHECKLIST HÀNG NGÀY ── -->
+  <section class="doc-section" id="checklist">
+    <h3><span>✅</span> Checklist vận hành hàng ngày</h3>
+    <div class="card">
+      <h4>Buổi sáng (5–10 phút)</h4>
+      <ul class="checklist">
+        <li>Kiểm tra tin nhắn Facebook Messenger mới</li>
+        <li>Kiểm tra WeChat có tin nhắn mới không</li>
+        <li>Vào Admin → Bookings xem yêu cầu mới từ form website</li>
+        <li>Cập nhật số "Đã đặt" cho các tour nếu có đăng ký mới qua Messenger/WeChat</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Hàng tuần</h4>
+      <ul class="checklist">
+        <li>Kiểm tra các tour sắp đến hạn đóng đăng ký</li>
+        <li>Đăng 1–2 bài blog hoặc story ảnh mới</li>
+        <li>Cập nhật trạng thái các đợt khởi hành (hết chỗ, đoàn riêng...)</li>
+        <li>Thêm đánh giá mới từ khách hàng (nếu có)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Hàng tháng</h4>
+      <ul class="checklist">
+        <li>Thêm lịch khởi hành mới cho các tháng tiếp theo</li>
+        <li>Cập nhật ảnh gallery cho các tour đã đi</li>
+        <li>Tắt (ẩn) các tour hết lịch trong năm</li>
+        <li>Liên hệ kỹ thuật nếu cần thêm tính năng mới</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── LIÊN HỆ KỸ THUẬT ── -->
+  <section class="doc-section" id="lien-he-ky-thuat">
+    <h3><span>📞</span> Liên hệ hỗ trợ kỹ thuật</h3>
+    <div class="card">
+      <div class="card-grid">
+        <div>
+          <h4>Khi nào cần liên hệ kỹ thuật?</h4>
+          <ul style="font-size:13px;color:var(--brown-light);line-height:2;padding-left:16px;margin-top:8px;">
+            <li>Website không mở được</li>
+            <li>Quên mật khẩu admin</li>
+            <li>Cần thêm tính năng mới</li>
+            <li>Thay đổi thông tin liên hệ trong code</li>
+            <li>Upload ảnh bị lỗi liên tục</li>
+            <li>Cần deploy lên server Hostinger</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Thông tin cần cung cấp khi báo lỗi</h4>
+          <ul style="font-size:13px;color:var(--brown-light);line-height:2;padding-left:16px;margin-top:8px;">
+            <li>Thời điểm phát hiện lỗi</li>
+            <li>Chụp màn hình thông báo lỗi</li>
+            <li>Đang làm gì thì bị lỗi</li>
+            <li>Thiết bị và trình duyệt đang dùng</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="background:var(--brown);border-color:var(--brown);">
+      <p style="color:rgba(255,255,255,0.6);font-size:12px;margin-bottom:8px;">THÔNG TIN KỸ THUẬT</p>
+      <p style="color:white;font-size:15px;font-weight:600;">GitHub Repository</p>
+      <div class="url-box" style="margin:8px 0 16px;">https://github.com/KaizerH/Web-Travel</div>
+      <p style="color:rgba(255,255,255,0.6);font-size:12px;">Stack: Next.js 14 · MongoDB · Hostinger VPS · PM2 + Nginx</p>
+    </div>
+  </section>
+
+  <div style="text-align:center;padding:40px 0 20px;color:var(--brown-light);font-size:12px;border-top:1px solid var(--cream-dark);">
+    © 2026 Linh Đình Travel · Tài liệu nội bộ · Phiên bản 1.0
+  </div>
+
+</main>
+</div>
+
+<script>
+  // Highlight sidebar on scroll
+  const sections = document.querySelectorAll('.doc-section');
+  const links = document.querySelectorAll('.sidebar a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) current = s.id; });
+    links.forEach(l => {
+      l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>
