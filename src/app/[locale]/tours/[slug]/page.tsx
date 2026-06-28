@@ -10,6 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Calendar, Clock, Facebook, ArrowLeft, CheckCircle, XCircle, Users, AlertCircle } from "lucide-react";
 import TourGallery from "@/components/TourGallery";
+import TourTimeline from "@/components/TourTimeline";
 
 function isExpired(closeDate?: string): boolean {
   if (!closeDate) return false;
@@ -40,6 +41,8 @@ export default async function TourDetailPage({
   const description = tour.description ? (tour.description as Record<string, string>)[locale] || (tour.description as Record<string, string>)["vi"] : "";
   const departures = (tour.departures as Record<string, unknown>[]) || [];
   const gallery = (tour.images as string[]) || [];
+  const itinerary = (tour.itinerary as Record<string, unknown>[]) || [];
+  const coverImagePosition = (tour.coverImagePosition as string) || "center";
 
   const statusClass: Record<string, string> = {
     open: "tag-open",
@@ -67,6 +70,7 @@ export default async function TourDetailPage({
             alt={title}
             fill
             className="object-cover opacity-50"
+            style={{ objectPosition: coverImagePosition }}
           />
           <div className="absolute inset-0 flex flex-col justify-end p-8 max-w-4xl mx-auto w-full">
             <Link href={`/${locale}/tours`} className="flex items-center gap-2 text-white/80 hover:text-white text-sm mb-4 w-fit">
@@ -96,6 +100,15 @@ export default async function TourDetailPage({
               <div>
                 <h2 className="font-display text-xl font-bold text-brand-brown mb-4">Bộ ảnh tour</h2>
                 <TourGallery images={gallery} title={title} />
+              </div>
+            )}
+
+            {/* Timeline itinerary */}
+            {itinerary.length > 0 && (
+              <div>
+                <h2 className="font-display text-xl font-bold text-brand-brown mb-6">Lịch trình chi tiết</h2>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                <TourTimeline itinerary={itinerary as any} locale={locale} />
               </div>
             )}
 

@@ -14,6 +14,13 @@ interface Departure {
   registrationCloseDate: string;
 }
 
+interface ItineraryDay {
+  day: number;
+  titleVi: string; titleEn: string; titleZh: string;
+  descVi: string; descEn: string; descZh: string;
+  images: string[];
+}
+
 interface TourForm {
   slug: string;
   titleVi: string; titleEn: string; titleZh: string;
@@ -22,7 +29,9 @@ interface TourForm {
   duration: number;
   departures: Departure[];
   coverImage: string;
+  coverImagePosition: string;
   images: string[];
+  itinerary: ItineraryDay[];
   highlightsText: string;
   includesText: string;
   excludesText: string;
@@ -33,16 +42,24 @@ interface TourForm {
 
 const DEFAULT_DEP: Departure = { date: "", status: "open", maxPeople: 15, currentBookings: 0, registrationCloseDate: "" };
 
+const DEFAULT_DAY: ItineraryDay = { day: 1, titleVi: "", titleEn: "", titleZh: "", descVi: "", descEn: "", descZh: "", images: [] };
+
 const DEFAULT: TourForm = {
   slug: "", titleVi: "", titleEn: "", titleZh: "",
   descVi: "", descEn: "", descZh: "",
   destination: "", duration: 5,
   departures: [{ ...DEFAULT_DEP }],
-  coverImage: "",
-  images: [],
+  coverImage: "", coverImagePosition: "center",
+  images: [], itinerary: [],
   highlightsText: "", includesText: "", excludesText: "",
   category: "china", featured: false, published: true,
 };
+
+const FOCAL_POINTS = [
+  { label: "↖", value: "top left" }, { label: "↑", value: "top center" }, { label: "↗", value: "top right" },
+  { label: "←", value: "center left" }, { label: "●", value: "center" }, { label: "→", value: "center right" },
+  { label: "↙", value: "bottom left" }, { label: "↓", value: "bottom center" }, { label: "↘", value: "bottom right" },
+];
 
 function toSlug(s: string) {
   return s.toLowerCase()
@@ -138,7 +155,7 @@ export default function TourModal({ tour, onClose, onSaved }: {
 }) {
   const [form, setForm] = useState<TourForm>(DEFAULT);
   const [saving, setSaving] = useState(false);
-  const [tab, setTab] = useState<"basic" | "gallery" | "details" | "schedule">("basic");
+  const [tab, setTab] = useState<"basic" | "gallery" | "itinerary" | "details" | "schedule">("basic");
 
   useEffect(() => {
     if (tour) {
@@ -160,7 +177,14 @@ export default function TourModal({ tour, onClose, onSaved }: {
           registrationCloseDate: d.registrationCloseDate as string || "",
         })) : [{ ...DEFAULT_DEP }],
         coverImage: t.coverImage as string || "",
+        coverImagePosition: t.coverImagePosition as string || "center",
         images: (t.images as string[]) || [],
+        itinerary: ((t.itinerary as Record<string, unknown>[]) || []).map((d, i) => ({
+          day: (d.day as number) || i + 1,
+          titleVi: d.titleVi as string || "", titleEn: d.titleEn as string || "", titleZh: d.titleZh as string || "",
+          descVi: d.descVi as string || "", descEn: d.descEn as string || "", descZh: d.descZh as string || "",
+          images: (d.images as string[]) || [],
+        })),
         highlightsText: ((t.highlights as string[]) || []).join("\n"),
         includesText: ((t.includes as string[]) || []).join("\n"),
         excludesText: ((t.excludes as string[]) || []).join("\n"),
@@ -197,7 +221,9 @@ export default function TourModal({ tour, onClose, onSaved }: {
       duration: form.duration,
       departures: form.departures.filter(d => d.date),
       coverImage: form.coverImage,
+      coverImagePosition: form.coverImagePosition,
       images: form.images,
+      itinerary: form.itinerary.filter(d => d.titleVi || d.descVi),
       highlights: form.highlightsText.split("\n").filter(Boolean),
       includes: form.includesText.split("\n").filter(Boolean),
       excludes: form.excludesText.split("\n").filter(Boolean),
@@ -222,9 +248,21 @@ export default function TourModal({ tour, onClose, onSaved }: {
     }
   };
 
+  const addItineraryDay = () => {
+    const nextDay = form.itinerary.length + 1;
+    set("itinerary", [...form.itinerary, { ...DEFAULT_DAY, day: nextDay }]);
+  };
+  const removeItineraryDay = (i: number) => set("itinerary", form.itinerary.filter((_, idx) => idx !== i));
+  const updateItinerary = (i: number, key: keyof ItineraryDay, val: unknown) => {
+    const updated = [...form.itinerary];
+    updated[i] = { ...updated[i], [key]: val };
+    set("itinerary", updated);
+  };
+
   const tabs = [
     { key: "basic", label: "📝 Nội dung" },
     { key: "gallery", label: "🖼 Ảnh" },
+    { key: "itinerary", label: "🗓 Lịch trình" },
     { key: "details", label: "✅ Chi tiết" },
     { key: "schedule", label: "📅 Lịch KH" },
   ] as const;
@@ -262,6 +300,34 @@ export default function TourModal({ tour, onClose, onSaved }: {
           {tab === "basic" && (
             <>
               <ImageUpload value={form.coverImage} onChange={v => set("coverImage", v)} label="Ảnh bìa tour" />
+
+              {/* Focal point picker */}
+              {form.coverImage && (
+                <div>
+                  <label className="block text-sm font-medium text-brand-brown mb-2">📍 Căn chỉnh vùng hiển thị ảnh bìa</label>
+                  <div className="flex gap-4 items-start">
+                    <div className="relative w-32 h-20 rounded-xl overflow-hidden flex-shrink-0 border border-gray-200">
+                      <img src={form.coverImage} alt="preview" className="w-full h-full object-cover" style={{ objectPosition: form.coverImagePosition }} />
+                    </div>
+                    <div className="grid grid-cols-3 gap-1">
+                      {FOCAL_POINTS.map(fp => (
+                        <button
+                          key={fp.value}
+                          type="button"
+                          onClick={() => set("coverImagePosition", fp.value)}
+                          className={`w-9 h-9 rounded-lg text-sm font-bold transition-colors cursor-pointer ${
+                            form.coverImagePosition === fp.value
+                              ? "bg-brand-teal text-white"
+                              : "bg-gray-100 text-gray-500 hover:bg-brand-teal/20"
+                          }`}
+                        >
+                          {fp.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
@@ -335,6 +401,53 @@ export default function TourModal({ tour, onClose, onSaved }: {
                   <p className="text-sm">Chưa có ảnh gallery. Nhấn tải lên để thêm ảnh.</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {tab === "itinerary" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-brand-brown-light">Mô tả chi tiết từng ngày — có thể thêm ảnh cho mỗi ngày.</p>
+                <button type="button" onClick={addItineraryDay}
+                  className="flex items-center gap-1.5 text-brand-teal text-sm hover:underline cursor-pointer">
+                  <Plus size={14} /> Thêm ngày
+                </button>
+              </div>
+              {form.itinerary.length === 0 && (
+                <div className="text-center py-10 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-xl">
+                  Chưa có lịch trình. Nhấn "Thêm ngày" để bắt đầu.
+                </div>
+              )}
+              {form.itinerary.map((day, i) => (
+                <div key={i} className="border border-gray-200 rounded-xl overflow-hidden">
+                  <div className="flex items-center justify-between bg-brand-cream px-4 py-2.5">
+                    <span className="font-semibold text-brand-brown text-sm">Ngày {day.day}</span>
+                    <button type="button" onClick={() => removeItineraryDay(i)} className="text-red-400 hover:text-red-600 cursor-pointer">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <input
+                      value={day.titleVi}
+                      onChange={e => updateItinerary(i, "titleVi", e.target.value)}
+                      placeholder="Tiêu đề ngày (VD: Nam Kinh | Hồ Yến Tước · Minh Hiếu Lăng)"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-teal/40"
+                    />
+                    <textarea
+                      rows={3}
+                      value={day.descVi}
+                      onChange={e => updateItinerary(i, "descVi", e.target.value)}
+                      placeholder="Mô tả hoạt động trong ngày..."
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-teal/40 resize-none"
+                    />
+                    {/* Per-day images */}
+                    <GalleryUpload
+                      images={day.images}
+                      onChange={imgs => updateItinerary(i, "images", imgs)}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 

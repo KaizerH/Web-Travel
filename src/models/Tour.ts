@@ -27,12 +27,14 @@ const TourSchema = new Schema(
     price: Number,
     currency: { type: String, default: "VND" },
     coverImage: String,
+    coverImagePosition: { type: String, default: "center" }, // CSS object-position
     images: [String], // gallery
     itinerary: [
       {
         day: Number,
         titleVi: String, titleEn: String, titleZh: String,
         descVi: String, descEn: String, descZh: String,
+        images: [String], // per-day images
       },
     ],
     highlights: [String],
