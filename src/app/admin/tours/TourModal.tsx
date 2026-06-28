@@ -109,15 +109,31 @@ function CoverImageEditor({ src, value, onChange }: {
     setZoom(z => Math.max(1, Math.min(3, z - e.deltaY * 0.001)));
   };
 
+  const lastPinchDist = useRef<number | null>(null);
+
+  const pinchDist = (e: React.TouchEvent) =>
+    Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+
   const onTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length !== 1) return;
-    isDragging.current = true;
-    lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (e.touches.length === 2) {
+      lastPinchDist.current = pinchDist(e);
+      isDragging.current = false;
+    } else {
+      isDragging.current = true;
+      lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging.current || e.touches.length !== 1) return;
     e.preventDefault();
+    if (e.touches.length === 2 && lastPinchDist.current !== null) {
+      const dist = pinchDist(e);
+      const delta = dist - lastPinchDist.current;
+      lastPinchDist.current = dist;
+      setZoom(z => Math.max(1, Math.min(3, z + delta * 0.008)));
+      return;
+    }
+    if (!isDragging.current || e.touches.length !== 1) return;
     const dx = e.touches[0].clientX - lastMouse.current.x;
     const dy = e.touches[0].clientY - lastMouse.current.y;
     lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -171,26 +187,15 @@ function CoverImageEditor({ src, value, onChange }: {
           )}
         </div>
 
-        {/* Zoom controls */}
-        <div className="flex flex-col gap-2 items-center">
-          <span className="text-xs text-gray-400">Zoom</span>
-          <button type="button"
-            onClick={() => setZoom(z => Math.min(3, +(z + 0.25).toFixed(2)))}
-            className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg text-lg font-bold cursor-pointer flex items-center justify-center">
-            +
-          </button>
-          <div className="text-xs text-gray-500 font-mono">{zoom.toFixed(1)}×</div>
-          <button type="button"
-            onClick={() => setZoom(z => Math.max(1, +(z - 0.25).toFixed(2)))}
-            className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg text-lg font-bold cursor-pointer flex items-center justify-center">
-            −
-          </button>
+        {/* Reset button */}
+        <div className="flex flex-col gap-2 items-center justify-center">
           <button type="button"
             onClick={() => { setZoom(1); commit(50, 50); }}
-            className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm cursor-pointer flex items-center justify-center"
-            title="Đặt lại">
+            className="w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-lg text-base cursor-pointer flex items-center justify-center"
+            title="Đặt lại về giữa">
             ↺
           </button>
+          <span className="text-xs text-gray-400 text-center">Reset</span>
         </div>
       </div>
     </div>
@@ -602,27 +607,27 @@ export default function TourModal({ tour, onClose, onSaved }: {
               </div>
               {form.departures.map((dep, i) => (
                 <div key={i} className="bg-brand-cream rounded-xl p-4 space-y-3">
-                  <div className="flex gap-3 items-center">
+                  <div className="flex gap-2 items-center">
                     <input
                       value={dep.date}
                       onChange={e => updateDeparture(i, "date", e.target.value)}
                       placeholder="VD: 29/10-03/11/2026"
-                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-teal/40 bg-white"
+                      className="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-teal/40 bg-white"
                     />
-                    <select
-                      value={dep.status}
-                      onChange={e => updateDeparture(i, "status", e.target.value)}
-                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none bg-white"
-                    >
-                      <option value="open">✅ Đã mở ĐKý</option>
-                      <option value="private">🔒 Đoàn riêng</option>
-                      <option value="full">❌ Hết chỗ</option>
-                    </select>
                     <button type="button" onClick={() => removeDeparture(i)}
-                      className="p-2 text-red-400 hover:bg-red-50 rounded-lg cursor-pointer">
+                      className="p-2 text-red-400 hover:bg-red-50 rounded-lg cursor-pointer flex-shrink-0">
                       <Trash2 size={14} />
                     </button>
                   </div>
+                  <select
+                    value={dep.status}
+                    onChange={e => updateDeparture(i, "status", e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none bg-white"
+                  >
+                    <option value="open">✅ Đã mở ĐKý</option>
+                    <option value="private">🔒 Đoàn riêng</option>
+                    <option value="full">❌ Hết chỗ</option>
+                  </select>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs text-brand-brown-light mb-1">Tổng chỗ (max)</label>
