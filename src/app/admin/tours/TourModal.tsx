@@ -55,75 +55,168 @@ const DEFAULT: TourForm = {
   category: "china", featured: false, published: true,
 };
 
-const GRID_CELLS = [
-  { x: 0,   y: 0   }, { x: 50,  y: 0   }, { x: 100, y: 0   },
-  { x: 0,   y: 50  }, { x: 50,  y: 50  }, { x: 100, y: 50  },
-  { x: 0,   y: 100 }, { x: 50,  y: 100 }, { x: 100, y: 100 },
-];
-
 function CoverImageEditor({ src, value, onChange }: {
   src: string;
   value: string;
   onChange: (v: string) => void;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const lastMouse = useRef({ x: 0, y: 0 });
+  const lastPinchDist = useRef<number | null>(null);
+
   const parsePos = (v: string) => {
     const parts = (v || "50% 50%").replace(/%/g, "").trim().split(/\s+/);
     return { x: parseFloat(parts[0]) || 50, y: parseFloat(parts[1] ?? parts[0]) || 50 };
   };
 
-  const [pos, setPos] = useState(parsePos(value));
+  const posRef = useRef(parsePos(value));
+  const zoomRef = useRef(1);
+  const [pos, setPos] = useState(posRef.current);
+  const [zoom, setZoom] = useState(1);
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
-    setPos(parsePos(value));
+    const p = parsePos(value);
+    posRef.current = p;
+    setPos(p);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
-  const select = (x: number, y: number) => {
-    setPos({ x, y });
-    onChange(`${x}% ${y}%`);
+  const commit = (x: number, y: number) => {
+    const nx = Math.max(0, Math.min(100, x));
+    const ny = Math.max(0, Math.min(100, y));
+    posRef.current = { x: nx, y: ny };
+    setPos({ x: nx, y: ny });
+    onChange(`${Math.round(nx)}% ${Math.round(ny)}%`);
   };
 
-  const activeIdx = GRID_CELLS.findIndex(c => c.x === pos.x && c.y === pos.y);
+  const onMouseDown = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    setDragging(true);
+    lastMouse.current = { x: e.clientX, y: e.clientY };
+    e.preventDefault();
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const dx = e.clientX - lastMouse.current.x;
+    const dy = e.clientY - lastMouse.current.y;
+    lastMouse.current = { x: e.clientX, y: e.clientY };
+    commit(posRef.current.x - dx * 0.28 / zoomRef.current, posRef.current.y - dy * 0.28 / zoomRef.current);
+  };
+
+  const onMouseUp = () => { isDragging.current = false; setDragging(false); };
+
+  // Scroll to zoom on desktop (trackpad pinch on Mac = wheel + ctrlKey)
+  const onWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.ctrlKey ? -e.deltaY * 0.02 : -e.deltaY * 0.003;
+    const newZoom = Math.max(1, Math.min(3, zoomRef.current + delta));
+    zoomRef.current = newZoom;
+    setZoom(newZoom);
+  };
+
+  // Non-passive native listeners for iOS pinch (React synthetic can't preventDefault)
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        lastPinchDist.current = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY,
+        );
+        isDragging.current = false;
+      } else if (e.touches.length === 1) {
+        isDragging.current = true;
+        lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault(); // blocks Safari page zoom / tab overview on iOS
+      if (e.touches.length === 2 && lastPinchDist.current !== null) {
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY,
+        );
+        const delta = (dist - lastPinchDist.current) * 0.01;
+        lastPinchDist.current = dist;
+        const newZoom = Math.max(1, Math.min(3, zoomRef.current + delta));
+        zoomRef.current = newZoom;
+        setZoom(newZoom);
+      } else if (e.touches.length === 1 && isDragging.current) {
+        const dx = e.touches[0].clientX - lastMouse.current.x;
+        const dy = e.touches[0].clientY - lastMouse.current.y;
+        lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        commit(posRef.current.x - dx * 0.28 / zoomRef.current, posRef.current.y - dy * 0.28 / zoomRef.current);
+      }
+    };
+
+    const onTouchEnd = () => { isDragging.current = false; lastPinchDist.current = null; };
+
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd);
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div>
       <label className="block text-sm font-medium text-brand-brown mb-2">
-        📍 Căn chỉnh vùng hiển thị ảnh bìa
-        <span className="text-xs text-gray-400 font-normal ml-1">— nhấn vào vùng muốn hiển thị</span>
+        📍 Căn chỉnh ảnh bìa
+        <span className="text-xs text-gray-400 font-normal ml-1">— kéo để di chuyển · cuộn để zoom</span>
       </label>
-      <div className="relative rounded-xl overflow-hidden border-2 border-brand-teal/40 select-none"
-        style={{ width: "100%", maxWidth: 360, aspectRatio: "16/9" }}>
-        {/* Background image */}
+      <div
+        ref={containerRef}
+        className="relative rounded-xl overflow-hidden border-2 border-brand-teal/40 select-none w-full"
+        style={{ aspectRatio: "16/9", cursor: dragging ? "grabbing" : "grab", touchAction: "none" }}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+        onWheel={onWheel}
+      >
+        {/* Image */}
         <img
           src={src}
           alt="cover preview"
           draggable={false}
           className="absolute inset-0 w-full h-full pointer-events-none"
-          style={{ objectFit: "cover", objectPosition: `${pos.x}% ${pos.y}%` }}
+          style={{
+            objectFit: "cover",
+            objectPosition: `${pos.x}% ${pos.y}%`,
+            transform: `scale(${zoom})`,
+            transformOrigin: `${pos.x}% ${pos.y}%`,
+          }}
         />
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black/30 pointer-events-none" />
-        {/* 3x3 grid overlay */}
-        <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
-          {GRID_CELLS.map((cell, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => select(cell.x, cell.y)}
-              className={`relative border border-white/20 transition-all cursor-pointer ${
-                activeIdx === i
-                  ? "bg-brand-teal/60 border-white/80"
-                  : "hover:bg-white/10"
-              }`}
-            >
-              {activeIdx === i && (
-                <span className="absolute inset-0 flex items-center justify-center">
-                  <span className="w-4 h-4 rounded-full bg-white shadow-md" />
-                </span>
-              )}
-            </button>
+        {/* Grid lines (rule of thirds guide) */}
+        <div className="absolute inset-0 pointer-events-none grid grid-cols-3 grid-rows-3">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className="border border-white/25" />
           ))}
         </div>
+        {/* Zoom badge */}
+        {zoom > 1 && (
+          <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full pointer-events-none">
+            {zoom.toFixed(1)}×
+          </div>
+        )}
+        {/* Reset button */}
+        <button
+          type="button"
+          onClick={() => { zoomRef.current = 1; setZoom(1); commit(50, 50); }}
+          className="absolute bottom-2 right-2 bg-black/50 hover:bg-black/70 text-white text-xs px-2 py-1 rounded-full cursor-pointer transition-colors"
+        >
+          ↺ Reset
+        </button>
       </div>
     </div>
   );
