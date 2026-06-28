@@ -109,14 +109,42 @@ function CoverImageEditor({ src, value, onChange }: {
     setZoom(z => Math.max(1, Math.min(3, z - e.deltaY * 0.001)));
   };
 
+  const containerRef2 = useRef<HTMLDivElement>(null);
   const lastPinchDist = useRef<number | null>(null);
 
-  const pinchDist = (e: React.TouchEvent) =>
-    Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  // Non-passive touchmove so we can preventDefault (blocks Safari page-zoom on iOS)
+  useEffect(() => {
+    const el = containerRef2.current;
+    if (!el) return;
+    const handler = (e: TouchEvent) => {
+      if (e.touches.length > 1) e.preventDefault();
+      if (e.touches.length === 2 && lastPinchDist.current !== null) {
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY,
+        );
+        const delta = dist - lastPinchDist.current;
+        lastPinchDist.current = dist;
+        setZoom(z => Math.max(1, Math.min(3, z + delta * 0.008)));
+      } else if (e.touches.length === 1 && isDragging.current) {
+        const dx = e.touches[0].clientX - lastMouse.current.x;
+        const dy = e.touches[0].clientY - lastMouse.current.y;
+        lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        const sensitivity = 0.28 / zoom;
+        commit(posRef.current.x - dx * sensitivity, posRef.current.y - dy * sensitivity);
+      }
+    };
+    el.addEventListener("touchmove", handler, { passive: false });
+    return () => el.removeEventListener("touchmove", handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoom]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
-      lastPinchDist.current = pinchDist(e);
+      lastPinchDist.current = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY,
+      );
       isDragging.current = false;
     } else {
       isDragging.current = true;
@@ -124,22 +152,7 @@ function CoverImageEditor({ src, value, onChange }: {
     }
   };
 
-  const onTouchMove = (e: React.TouchEvent) => {
-    e.preventDefault();
-    if (e.touches.length === 2 && lastPinchDist.current !== null) {
-      const dist = pinchDist(e);
-      const delta = dist - lastPinchDist.current;
-      lastPinchDist.current = dist;
-      setZoom(z => Math.max(1, Math.min(3, z + delta * 0.008)));
-      return;
-    }
-    if (!isDragging.current || e.touches.length !== 1) return;
-    const dx = e.touches[0].clientX - lastMouse.current.x;
-    const dy = e.touches[0].clientY - lastMouse.current.y;
-    lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    const sensitivity = 0.28 / zoom;
-    commit(posRef.current.x - dx * sensitivity, posRef.current.y - dy * sensitivity);
-  };
+  const onTouchMove = undefined; // handled via native listener above
 
   return (
     <div>
@@ -150,15 +163,15 @@ function CoverImageEditor({ src, value, onChange }: {
       <div className="flex gap-4 items-start">
         {/* Editor frame */}
         <div
+          ref={containerRef2}
           className="relative flex-shrink-0 rounded-xl overflow-hidden border-2 border-brand-teal/50 select-none"
-          style={{ width: 288, height: 162, cursor: isDragging.current ? "grabbing" : "grab", touchAction: "none" }}
+          style={{ width: 288, height: 162, cursor: "grab", touchAction: "none" }}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
           onMouseUp={onMouseUp}
           onMouseLeave={onMouseUp}
           onWheel={onWheel}
           onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
           onTouchEnd={onMouseUp}
         >
           <img
