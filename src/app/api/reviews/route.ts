@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { Review } from "@/models/Review";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   await connectDB();
   const reviews = await Review.find().sort({ createdAt: -1 }).lean();
