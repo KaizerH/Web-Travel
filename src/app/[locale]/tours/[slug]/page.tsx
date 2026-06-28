@@ -161,8 +161,8 @@ export default async function TourDetailPage({
                           </div>
                         </div>
                       )}
-                      {dep.registrationCloseDate && !isExpired(dep.registrationCloseDate as string) && (
-                        <p className="text-xs text-brand-brown-light">Đóng ĐKý: {dep.registrationCloseDate as string}</p>
+                      {typeof dep.registrationCloseDate === "string" && dep.registrationCloseDate && !isExpired(dep.registrationCloseDate) && (
+                        <p className="text-xs text-brand-brown-light">Đóng ĐKý: {dep.registrationCloseDate}</p>
                       )}
                     </div>
                   );
