@@ -2,6 +2,20 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
+// Hỗ trợ nhiều admin: ADMIN_ACCOUNTS=email1:pass1,email2:pass2
+// Hoặc dùng ADMIN_EMAIL + ADMIN_PASSWORD cho 1 tài khoản
+function getAdminAccounts(): { email: string; password: string; name: string }[] {
+  // Multi-account từ ADMIN_ACCOUNTS
+  if (process.env.ADMIN_ACCOUNTS) {
+    return process.env.ADMIN_ACCOUNTS.split(",").map((entry, i) => {
+      const [email, ...passParts] = entry.trim().split(":");
+      return { email, password: passParts.join(":"), name: `Admin ${i + 1}` };
+    });
+  }
+  // Single account (backwards compatible)
+  return [{ email: process.env.ADMIN_EMAIL!, password: process.env.ADMIN_PASSWORD!, name: "Admin" }];
+}
+
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -13,17 +27,17 @@ const handler = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const adminEmail = process.env.ADMIN_EMAIL!;
-        const adminPassword = process.env.ADMIN_PASSWORD!;
+        const accounts = getAdminAccounts();
+        const account = accounts.find(a => a.email === credentials.email);
+        if (!account) return null;
 
-        if (credentials.email !== adminEmail) return null;
-
-        const isValid = credentials.password === adminPassword ||
-          (await bcrypt.compare(credentials.password, adminPassword).catch(() => false));
+        const isValid =
+          credentials.password === account.password ||
+          (await bcrypt.compare(credentials.password, account.password).catch(() => false));
 
         if (!isValid) return null;
 
-        return { id: "1", email: adminEmail, name: "Admin" };
+        return { id: account.email, email: account.email, name: account.name };
       },
     }),
   ],

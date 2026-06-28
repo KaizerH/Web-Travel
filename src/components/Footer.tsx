@@ -17,7 +17,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <Image src="/logo.png" alt="Linh Đình Travel" width={44} height={44} className="h-10 w-auto brightness-0 invert" />
+              <Image src="/logo.png" alt="Linh Đình Travel" width={44} height={44} className="h-10 w-auto" />
               <span className="font-display font-bold text-xl">Linh Đình Travel</span>
             </div>
             <p className="text-white/70 text-sm leading-relaxed mb-4">{t("desc")}</p>
