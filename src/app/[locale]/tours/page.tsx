@@ -32,12 +32,15 @@ export default async function ToursPage() {
       coverImage: t.coverImage as string | undefined,
       featured: t.featured as boolean | undefined,
     }));
-  } catch {
-    // DB not connected, fall back to sample data
+  } catch (e) {
+    console.error("[ToursPage] DB error:", e);
     tours = SAMPLE_TOURS;
   }
 
-  if (tours.length === 0) tours = SAMPLE_TOURS;
+  if (tours.length === 0) {
+    console.log("[ToursPage] DB returned 0 tours, using sample data");
+    tours = SAMPLE_TOURS;
+  }
 
   return (
     <>
