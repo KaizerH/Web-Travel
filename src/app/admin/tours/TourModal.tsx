@@ -55,160 +55,74 @@ const DEFAULT: TourForm = {
   category: "china", featured: false, published: true,
 };
 
+const GRID_CELLS = [
+  { x: 0,   y: 0   }, { x: 50,  y: 0   }, { x: 100, y: 0   },
+  { x: 0,   y: 50  }, { x: 50,  y: 50  }, { x: 100, y: 50  },
+  { x: 0,   y: 100 }, { x: 50,  y: 100 }, { x: 100, y: 100 },
+];
+
 function CoverImageEditor({ src, value, onChange }: {
   src: string;
   value: string;
   onChange: (v: string) => void;
 }) {
-  const isDragging = useRef(false);
-  const lastMouse = useRef({ x: 0, y: 0 });
-
   const parsePos = (v: string) => {
     const parts = (v || "50% 50%").replace(/%/g, "").trim().split(/\s+/);
     return { x: parseFloat(parts[0]) || 50, y: parseFloat(parts[1] ?? parts[0]) || 50 };
   };
 
-  const posRef = useRef(parsePos(value));
-  const [pos, setPos] = useState(posRef.current);
-  const [zoom, setZoom] = useState(1);
+  const [pos, setPos] = useState(parsePos(value));
 
   useEffect(() => {
-    const p = parsePos(value);
-    posRef.current = p;
-    setPos(p);
+    setPos(parsePos(value));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
-  const commit = (x: number, y: number) => {
-    const nx = Math.max(0, Math.min(100, x));
-    const ny = Math.max(0, Math.min(100, y));
-    posRef.current = { x: nx, y: ny };
-    setPos({ x: nx, y: ny });
-    onChange(`${Math.round(nx)}% ${Math.round(ny)}%`);
+  const select = (x: number, y: number) => {
+    setPos({ x, y });
+    onChange(`${x}% ${y}%`);
   };
 
-  const onMouseDown = (e: React.MouseEvent) => {
-    isDragging.current = true;
-    lastMouse.current = { x: e.clientX, y: e.clientY };
-    e.preventDefault();
-  };
-
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging.current) return;
-    const dx = e.clientX - lastMouse.current.x;
-    const dy = e.clientY - lastMouse.current.y;
-    lastMouse.current = { x: e.clientX, y: e.clientY };
-    const sensitivity = 0.28 / zoom;
-    commit(posRef.current.x - dx * sensitivity, posRef.current.y - dy * sensitivity);
-  };
-
-  const onMouseUp = () => { isDragging.current = false; };
-
-  const onWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    setZoom(z => Math.max(1, Math.min(3, z - e.deltaY * 0.001)));
-  };
-
-  const containerRef2 = useRef<HTMLDivElement>(null);
-  const lastPinchDist = useRef<number | null>(null);
-
-  // Non-passive touchmove so we can preventDefault (blocks Safari page-zoom on iOS)
-  useEffect(() => {
-    const el = containerRef2.current;
-    if (!el) return;
-    const handler = (e: TouchEvent) => {
-      if (e.touches.length > 1) e.preventDefault();
-      if (e.touches.length === 2 && lastPinchDist.current !== null) {
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY,
-        );
-        const delta = dist - lastPinchDist.current;
-        lastPinchDist.current = dist;
-        setZoom(z => Math.max(1, Math.min(3, z + delta * 0.008)));
-      } else if (e.touches.length === 1 && isDragging.current) {
-        const dx = e.touches[0].clientX - lastMouse.current.x;
-        const dy = e.touches[0].clientY - lastMouse.current.y;
-        lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        const sensitivity = 0.28 / zoom;
-        commit(posRef.current.x - dx * sensitivity, posRef.current.y - dy * sensitivity);
-      }
-    };
-    el.addEventListener("touchmove", handler, { passive: false });
-    return () => el.removeEventListener("touchmove", handler);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zoom]);
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      lastPinchDist.current = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY,
-      );
-      isDragging.current = false;
-    } else {
-      isDragging.current = true;
-      lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    }
-  };
-
-  const onTouchMove = undefined; // handled via native listener above
+  const activeIdx = GRID_CELLS.findIndex(c => c.x === pos.x && c.y === pos.y);
 
   return (
     <div>
       <label className="block text-sm font-medium text-brand-brown mb-2">
-        📍 Căn chỉnh ảnh bìa
-        <span className="text-xs text-gray-400 font-normal ml-1">— kéo để di chuyển · cuộn để phóng to</span>
+        📍 Căn chỉnh vùng hiển thị ảnh bìa
+        <span className="text-xs text-gray-400 font-normal ml-1">— nhấn vào vùng muốn hiển thị</span>
       </label>
-      <div className="flex gap-4 items-start">
-        {/* Editor frame */}
-        <div
-          ref={containerRef2}
-          className="relative flex-shrink-0 rounded-xl overflow-hidden border-2 border-brand-teal/50 select-none"
-          style={{ width: 288, height: 162, cursor: "grab", touchAction: "none" }}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={onMouseUp}
-          onMouseLeave={onMouseUp}
-          onWheel={onWheel}
-          onTouchStart={onTouchStart}
-          onTouchEnd={onMouseUp}
-        >
-          <img
-            src={src}
-            alt="cover preview"
-            draggable={false}
-            className="absolute inset-0 w-full h-full pointer-events-none"
-            style={{
-              objectFit: "cover",
-              objectPosition: `${pos.x}% ${pos.y}%`,
-              transform: `scale(${zoom})`,
-              transformOrigin: `${pos.x}% ${pos.y}%`,
-            }}
-          />
-          {/* Crosshair */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-7 h-7 rounded-full border-2 border-white shadow-lg opacity-80" />
-            <div className="absolute w-px h-full bg-white/30" />
-            <div className="absolute h-px w-full bg-white/30" />
-          </div>
-          {/* Zoom badge */}
-          {zoom > 1 && (
-            <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full pointer-events-none">
-              {zoom.toFixed(1)}×
-            </div>
-          )}
-        </div>
-
-        {/* Reset button */}
-        <div className="flex flex-col gap-2 items-center justify-center">
-          <button type="button"
-            onClick={() => { setZoom(1); commit(50, 50); }}
-            className="w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-lg text-base cursor-pointer flex items-center justify-center"
-            title="Đặt lại về giữa">
-            ↺
-          </button>
-          <span className="text-xs text-gray-400 text-center">Reset</span>
+      <div className="relative rounded-xl overflow-hidden border-2 border-brand-teal/40 select-none"
+        style={{ width: "100%", maxWidth: 360, aspectRatio: "16/9" }}>
+        {/* Background image */}
+        <img
+          src={src}
+          alt="cover preview"
+          draggable={false}
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          style={{ objectFit: "cover", objectPosition: `${pos.x}% ${pos.y}%` }}
+        />
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/30 pointer-events-none" />
+        {/* 3x3 grid overlay */}
+        <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
+          {GRID_CELLS.map((cell, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => select(cell.x, cell.y)}
+              className={`relative border border-white/20 transition-all cursor-pointer ${
+                activeIdx === i
+                  ? "bg-brand-teal/60 border-white/80"
+                  : "hover:bg-white/10"
+              }`}
+            >
+              {activeIdx === i && (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="w-4 h-4 rounded-full bg-white shadow-md" />
+                </span>
+              )}
+            </button>
+          ))}
         </div>
       </div>
     </div>
