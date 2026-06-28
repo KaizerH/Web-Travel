@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-teal: #1A8A7A;
+  --brand-rust: #C4521A;
+  --brand-cream: #F5EFE6;
+  --brand-brown: #3D2B1F;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-brand-cream text-brand-brown font-sans antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 bg-brand-rust text-white px-6 py-3 rounded-full font-semibold text-sm tracking-wide hover:bg-brand-rust-dark transition-all duration-200 cursor-pointer;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 border-2 border-brand-teal text-brand-teal px-6 py-3 rounded-full font-semibold text-sm tracking-wide hover:bg-brand-teal hover:text-white transition-all duration-200 cursor-pointer;
+  }
+
+  .btn-outline-white {
+    @apply inline-flex items-center gap-2 border-2 border-white text-white px-6 py-3 rounded-full font-semibold text-sm tracking-wide hover:bg-white hover:text-brand-brown transition-all duration-200 cursor-pointer;
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl font-display font-bold text-brand-brown;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300;
+  }
+
+  .tag-open {
+    @apply bg-brand-teal/10 text-brand-teal text-xs font-semibold px-3 py-1 rounded-full;
+  }
+
+  .tag-private {
+    @apply bg-brand-rust/10 text-brand-rust text-xs font-semibold px-3 py-1 rounded-full;
+  }
+
+  .tag-full {
+    @apply bg-gray-100 text-gray-500 text-xs font-semibold px-3 py-1 rounded-full;
+  }
+}
+
+/* Swiper overrides */
+.swiper-pagination-bullet-active {
+  background-color: var(--brand-rust) !important;
+}

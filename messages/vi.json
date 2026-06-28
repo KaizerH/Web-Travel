@@ -1,0 +1,82 @@
+{
+  "nav": {
+    "home": "Trang Chủ",
+    "tours": "Tours",
+    "blog": "Blog",
+    "contact": "Liên Hệ",
+    "bookNow": "Đặt Tour Ngay"
+  },
+  "hero": {
+    "tagline": "China Photo Trip • Small Group Tours",
+    "title": "Khám Phá Trung Quốc",
+    "subtitle": "Hành trình nhiếp ảnh đỉnh cao cùng hướng dẫn viên chuyên nghiệp",
+    "cta": "Xem Lịch Trình 2026",
+    "ctaSecondary": "Chat với chúng tôi"
+  },
+  "features": {
+    "title": "Tại sao chọn Linh Đình Travel?",
+    "guide": {
+      "title": "Hướng dẫn viên chuyên nghiệp",
+      "desc": "Am hiểu văn hóa, ngôn ngữ Trung – Việt, đồng hành suốt hành trình"
+    },
+    "photo": {
+      "title": "Chụp ảnh chuyên nghiệp",
+      "desc": "Dẫn đến những góc chụp đẹp nhất, hỗ trợ kỹ thuật chụp ảnh du lịch"
+    },
+    "food": {
+      "title": "Ẩm thực địa phương",
+      "desc": "Khám phá tinh hoa ẩm thực Trung Hoa tại những địa điểm ăn uống chuẩn nhất"
+    },
+    "small": {
+      "title": "Đoàn nhỏ – Trải nghiệm sâu",
+      "desc": "Giới hạn số lượng thành viên để đảm bảo chất lượng dịch vụ tốt nhất"
+    }
+  },
+  "tours": {
+    "title": "Lịch Trình 2026",
+    "subtitle": "China Photo Trip – Small Group Tours",
+    "viewAll": "Xem tất cả tours",
+    "viewDetail": "Xem chi tiết",
+    "bookTour": "Đặt Tour",
+    "duration": "Thời gian",
+    "departures": "Khởi hành",
+    "status": {
+      "open": "Đã mở ĐKý",
+      "private": "Đoàn riêng",
+      "full": "Hết chỗ"
+    },
+    "days": "ngày"
+  },
+  "contact": {
+    "title": "Liên Hệ & Đặt Tour",
+    "subtitle": "Chúng tôi luôn sẵn sàng tư vấn miễn phí cho bạn",
+    "facebook": "Chat Facebook",
+    "wechat": "WeChat QR",
+    "wechatScan": "Quét mã QR để kết nối WeChat",
+    "form": {
+      "name": "Họ và tên",
+      "email": "Email",
+      "phone": "Số điện thoại",
+      "tour": "Tour quan tâm",
+      "message": "Tin nhắn",
+      "submit": "Gửi yêu cầu",
+      "success": "Cảm ơn! Chúng tôi sẽ liên hệ sớm nhất.",
+      "error": "Có lỗi xảy ra. Vui lòng thử lại."
+    }
+  },
+  "reviews": {
+    "title": "Khách hàng nói gì về chúng tôi"
+  },
+  "blog": {
+    "title": "Blog Du Lịch",
+    "subtitle": "Kinh nghiệm, mẹo du lịch và cảm hứng từ những hành trình",
+    "readMore": "Đọc thêm",
+    "backToBlog": "Quay lại Blog"
+  },
+  "footer": {
+    "desc": "Chuyên tổ chức các tour du lịch Trung Quốc và dịch vụ hướng dẫn viên cho khách Trung Quốc tại Việt Nam.",
+    "links": "Liên kết",
+    "followUs": "Theo dõi chúng tôi",
+    "rights": "Tất cả quyền được bảo lưu."
+  }
+}

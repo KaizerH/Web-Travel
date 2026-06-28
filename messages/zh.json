@@ -1,0 +1,82 @@
+{
+  "nav": {
+    "home": "首页",
+    "tours": "旅游线路",
+    "blog": "旅游博客",
+    "contact": "联系我们",
+    "bookNow": "立即预订"
+  },
+  "hero": {
+    "tagline": "中国摄影之旅 • 小团精品游",
+    "title": "探索中国之美",
+    "subtitle": "专业摄影旅行，资深导游全程陪同",
+    "cta": "查看2026行程",
+    "ctaSecondary": "立即联系"
+  },
+  "features": {
+    "title": "为什么选择灵顶旅游?",
+    "guide": {
+      "title": "专业导游",
+      "desc": "精通越南语和中文的双语导游，全程陪同服务"
+    },
+    "photo": {
+      "title": "摄影支持",
+      "desc": "带您找到最佳拍摄地点，提供旅行摄影技巧指导"
+    },
+    "food": {
+      "title": "当地美食",
+      "desc": "探索正宗中华美食，带您到最地道的餐厅用餐"
+    },
+    "small": {
+      "title": "小团深度游",
+      "desc": "严格控制团队人数，确保每位游客都能享受最优质的服务"
+    }
+  },
+  "tours": {
+    "title": "2026年行程表",
+    "subtitle": "中国摄影之旅 – 小团精品游",
+    "viewAll": "查看全部线路",
+    "viewDetail": "查看详情",
+    "bookTour": "立即预订",
+    "duration": "行程天数",
+    "departures": "出发日期",
+    "status": {
+      "open": "开放报名",
+      "private": "私人定制",
+      "full": "名额已满"
+    },
+    "days": "天"
+  },
+  "contact": {
+    "title": "联系与预订",
+    "subtitle": "我们随时为您提供免费咨询",
+    "facebook": "Facebook聊天",
+    "wechat": "微信二维码",
+    "wechatScan": "扫描二维码添加微信",
+    "form": {
+      "name": "姓名",
+      "email": "邮箱",
+      "phone": "电话号码",
+      "tour": "感兴趣的线路",
+      "message": "留言",
+      "submit": "发送咨询",
+      "success": "谢谢！我们将尽快与您联系。",
+      "error": "发生错误，请重试。"
+    }
+  },
+  "reviews": {
+    "title": "客户评价"
+  },
+  "blog": {
+    "title": "旅游博客",
+    "subtitle": "旅行技巧、经验分享和目的地灵感",
+    "readMore": "阅读更多",
+    "backToBlog": "返回博客"
+  },
+  "footer": {
+    "desc": "专注于中国旅游路线策划及为来越南的中国游客提供导游服务。",
+    "links": "快速链接",
+    "followUs": "关注我们",
+    "rights": "版权所有。"
+  }
+}

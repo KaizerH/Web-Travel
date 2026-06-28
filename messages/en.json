@@ -1,0 +1,82 @@
+{
+  "nav": {
+    "home": "Home",
+    "tours": "Tours",
+    "blog": "Blog",
+    "contact": "Contact",
+    "bookNow": "Book Now"
+  },
+  "hero": {
+    "tagline": "China Photo Trip • Small Group Tours",
+    "title": "Discover China",
+    "subtitle": "Premium photography journeys with professional guides",
+    "cta": "View 2026 Schedule",
+    "ctaSecondary": "Chat with us"
+  },
+  "features": {
+    "title": "Why choose Linh Đình Travel?",
+    "guide": {
+      "title": "Professional Guides",
+      "desc": "Bilingual Vietnamese-Chinese guides accompanying you throughout the journey"
+    },
+    "photo": {
+      "title": "Photography Support",
+      "desc": "Best shooting spots, lighting tips and travel photography techniques"
+    },
+    "food": {
+      "title": "Local Cuisine",
+      "desc": "Discover authentic Chinese cuisine at the finest local restaurants"
+    },
+    "small": {
+      "title": "Small Groups – Deep Experience",
+      "desc": "Limited group size for the highest quality service"
+    }
+  },
+  "tours": {
+    "title": "2026 Schedule",
+    "subtitle": "China Photo Trip – Small Group Tours",
+    "viewAll": "View all tours",
+    "viewDetail": "View details",
+    "bookTour": "Book Tour",
+    "duration": "Duration",
+    "departures": "Departures",
+    "status": {
+      "open": "Registration Open",
+      "private": "Private Group",
+      "full": "Fully Booked"
+    },
+    "days": "days"
+  },
+  "contact": {
+    "title": "Contact & Book",
+    "subtitle": "We are ready to give you free consultation",
+    "facebook": "Chat on Facebook",
+    "wechat": "WeChat QR",
+    "wechatScan": "Scan QR code to connect on WeChat",
+    "form": {
+      "name": "Full name",
+      "email": "Email",
+      "phone": "Phone number",
+      "tour": "Tour of interest",
+      "message": "Message",
+      "submit": "Send request",
+      "success": "Thank you! We will contact you soon.",
+      "error": "An error occurred. Please try again."
+    }
+  },
+  "reviews": {
+    "title": "What our customers say"
+  },
+  "blog": {
+    "title": "Travel Blog",
+    "subtitle": "Tips, experiences and inspiration from our journeys",
+    "readMore": "Read more",
+    "backToBlog": "Back to Blog"
+  },
+  "footer": {
+    "desc": "Specializing in China tours and guide services for Chinese visitors to Vietnam.",
+    "links": "Quick Links",
+    "followUs": "Follow us",
+    "rights": "All rights reserved."
+  }
+}
