@@ -55,11 +55,147 @@ const DEFAULT: TourForm = {
   category: "china", featured: false, published: true,
 };
 
-const FOCAL_POINTS = [
-  { label: "↖", value: "top left" }, { label: "↑", value: "top center" }, { label: "↗", value: "top right" },
-  { label: "←", value: "center left" }, { label: "●", value: "center" }, { label: "→", value: "center right" },
-  { label: "↙", value: "bottom left" }, { label: "↓", value: "bottom center" }, { label: "↘", value: "bottom right" },
-];
+function CoverImageEditor({ src, value, onChange }: {
+  src: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const isDragging = useRef(false);
+  const lastMouse = useRef({ x: 0, y: 0 });
+
+  const parsePos = (v: string) => {
+    const parts = (v || "50% 50%").replace(/%/g, "").trim().split(/\s+/);
+    return { x: parseFloat(parts[0]) || 50, y: parseFloat(parts[1] ?? parts[0]) || 50 };
+  };
+
+  const posRef = useRef(parsePos(value));
+  const [pos, setPos] = useState(posRef.current);
+  const [zoom, setZoom] = useState(1);
+
+  useEffect(() => {
+    const p = parsePos(value);
+    posRef.current = p;
+    setPos(p);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src]);
+
+  const commit = (x: number, y: number) => {
+    const nx = Math.max(0, Math.min(100, x));
+    const ny = Math.max(0, Math.min(100, y));
+    posRef.current = { x: nx, y: ny };
+    setPos({ x: nx, y: ny });
+    onChange(`${Math.round(nx)}% ${Math.round(ny)}%`);
+  };
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    lastMouse.current = { x: e.clientX, y: e.clientY };
+    e.preventDefault();
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const dx = e.clientX - lastMouse.current.x;
+    const dy = e.clientY - lastMouse.current.y;
+    lastMouse.current = { x: e.clientX, y: e.clientY };
+    const sensitivity = 0.28 / zoom;
+    commit(posRef.current.x - dx * sensitivity, posRef.current.y - dy * sensitivity);
+  };
+
+  const onMouseUp = () => { isDragging.current = false; };
+
+  const onWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    setZoom(z => Math.max(1, Math.min(3, z - e.deltaY * 0.001)));
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    isDragging.current = true;
+    lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging.current || e.touches.length !== 1) return;
+    e.preventDefault();
+    const dx = e.touches[0].clientX - lastMouse.current.x;
+    const dy = e.touches[0].clientY - lastMouse.current.y;
+    lastMouse.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    const sensitivity = 0.28 / zoom;
+    commit(posRef.current.x - dx * sensitivity, posRef.current.y - dy * sensitivity);
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-brand-brown mb-2">
+        📍 Căn chỉnh ảnh bìa
+        <span className="text-xs text-gray-400 font-normal ml-1">— kéo để di chuyển · cuộn để phóng to</span>
+      </label>
+      <div className="flex gap-4 items-start">
+        {/* Editor frame */}
+        <div
+          className="relative flex-shrink-0 rounded-xl overflow-hidden border-2 border-brand-teal/50 select-none"
+          style={{ width: 288, height: 162, cursor: isDragging.current ? "grabbing" : "grab", touchAction: "none" }}
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
+          onMouseLeave={onMouseUp}
+          onWheel={onWheel}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onMouseUp}
+        >
+          <img
+            src={src}
+            alt="cover preview"
+            draggable={false}
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            style={{
+              objectFit: "cover",
+              objectPosition: `${pos.x}% ${pos.y}%`,
+              transform: `scale(${zoom})`,
+              transformOrigin: `${pos.x}% ${pos.y}%`,
+            }}
+          />
+          {/* Crosshair */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-7 h-7 rounded-full border-2 border-white shadow-lg opacity-80" />
+            <div className="absolute w-px h-full bg-white/30" />
+            <div className="absolute h-px w-full bg-white/30" />
+          </div>
+          {/* Zoom badge */}
+          {zoom > 1 && (
+            <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full pointer-events-none">
+              {zoom.toFixed(1)}×
+            </div>
+          )}
+        </div>
+
+        {/* Zoom controls */}
+        <div className="flex flex-col gap-2 items-center">
+          <span className="text-xs text-gray-400">Zoom</span>
+          <button type="button"
+            onClick={() => setZoom(z => Math.min(3, +(z + 0.25).toFixed(2)))}
+            className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg text-lg font-bold cursor-pointer flex items-center justify-center">
+            +
+          </button>
+          <div className="text-xs text-gray-500 font-mono">{zoom.toFixed(1)}×</div>
+          <button type="button"
+            onClick={() => setZoom(z => Math.max(1, +(z - 0.25).toFixed(2)))}
+            className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg text-lg font-bold cursor-pointer flex items-center justify-center">
+            −
+          </button>
+          <button type="button"
+            onClick={() => { setZoom(1); commit(50, 50); }}
+            className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm cursor-pointer flex items-center justify-center"
+            title="Đặt lại">
+            ↺
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function toSlug(s: string) {
   return s.toLowerCase()
@@ -301,32 +437,13 @@ export default function TourModal({ tour, onClose, onSaved }: {
             <>
               <ImageUpload value={form.coverImage} onChange={v => set("coverImage", v)} label="Ảnh bìa tour" />
 
-              {/* Focal point picker */}
+              {/* Cover image position editor */}
               {form.coverImage && (
-                <div>
-                  <label className="block text-sm font-medium text-brand-brown mb-2">📍 Căn chỉnh vùng hiển thị ảnh bìa</label>
-                  <div className="flex gap-4 items-start">
-                    <div className="relative w-32 h-20 rounded-xl overflow-hidden flex-shrink-0 border border-gray-200">
-                      <img src={form.coverImage} alt="preview" className="w-full h-full object-cover" style={{ objectPosition: form.coverImagePosition }} />
-                    </div>
-                    <div className="grid grid-cols-3 gap-1">
-                      {FOCAL_POINTS.map(fp => (
-                        <button
-                          key={fp.value}
-                          type="button"
-                          onClick={() => set("coverImagePosition", fp.value)}
-                          className={`w-9 h-9 rounded-lg text-sm font-bold transition-colors cursor-pointer ${
-                            form.coverImagePosition === fp.value
-                              ? "bg-brand-teal text-white"
-                              : "bg-gray-100 text-gray-500 hover:bg-brand-teal/20"
-                          }`}
-                        >
-                          {fp.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <CoverImageEditor
+                  src={form.coverImage}
+                  value={form.coverImagePosition}
+                  onChange={v => set("coverImagePosition", v)}
+                />
               )}
 
               <div className="grid grid-cols-2 gap-4">
